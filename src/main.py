@@ -7,9 +7,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import networkx as nx
 
 def solve():
-    global iterationnumber
-    global D
-    global window
+    global iter, tStart, tStop, D, window
     tStart = perf_counter()
     text.delete("1.0","end")
     path, dist, iter = D.dijkstra(src_node.get(), dest_node.get())
@@ -68,15 +66,17 @@ def update_graph(graph):
     dest_drop.config(width = 17)
 
 def step_by_step(graph, path):
-    global fig
+    global fig, tStop, tStart, iter
     step = []
     for i in range (len(path) - 1):
+        distance = 0
         step.append([path[i],path[i+1]])
         fig = plt.figure(figsize=(6.5,2.7))
         G = nx.DiGraph()
         for node in graph.nodes:
             for adj, dist in graph.adj[node]:
                 if [node,adj] in step:
+                    distance += dist
                     G.add_edge(node, adj, weight=dist, step = "step")
                 else:
                     G.add_edge(node, adj, weight=dist, step = "not-step")
@@ -99,7 +99,11 @@ def step_by_step(graph, path):
         canvas = FigureCanvasTkAgg(fig, master=frame_Graph)
         canvas.draw()
         canvas.get_tk_widget().pack()
-        text.insert(str(float(i+5)), "->{0}".format(path[i+1]))
+        text.delete("1.0", "end")
+        text.insert("2.0", "Iterations = " + str(iter) + "\nWaktu Eksekusi = " + str("{:.6f}".format(tStop-tStart)) + " sekon\n")
+        text.insert("3.0", "Distance = " + str(distance) + "\n")
+        text.insert("4.0", "Shortest path = {0}".format(print_path(path[:i+2])))
+        text.tag_add("tag_name", "1.0", "end")
         sleep(1)
         window.update()
         
