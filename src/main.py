@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import filedialog as fd
 from dijkstra import *
-from time import perf_counter
+from time import perf_counter, sleep
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import networkx as nx
@@ -16,11 +16,13 @@ def solve():
     if (dist < INT_MAX):
         tStop = perf_counter()
         text.insert("2.0", "Iterations = " + str(iter) + "\nWaktu Eksekusi = " + str("{:.6f}".format(tStop-tStart)) + " sekon\n")
-        text.insert("3.0", "Shortest path = {0}\n".format(print_path(list(path))))
-        text.insert("4.0", "Distance = " + str(dist))
+        text.insert("3.0", "Distance = " + str(dist) + "\n")
+        text.insert("4.0", "Shortest path = {0}".format(list(path)[0]))
+        if len(list(path)) > 1:
+            step_by_step(D, list(path))
         text.tag_add("tag_name", "1.0", "end")
     else:
-        text.insert("5.0", "Path tidak ditemukan")
+        text.insert("2.0", "Path tidak ditemukan")
         text.tag_add("tag_name", "1.0", "end")
 
 def select_file():
@@ -38,7 +40,7 @@ def select_file():
 
 def update_graph(graph):
     global fig
-    fig.clear()
+    plt.clf()
     fig = plt.figure(figsize=(6.5,2.7))
     G = nx.DiGraph()
     for node in graph.nodes:
@@ -46,7 +48,7 @@ def update_graph(graph):
             G.add_edge(node, adj, weight=dist)
 
     pos = nx.circular_layout(G)
-    nx.draw(G, pos)
+    nx.draw(G, pos, edge_color = '#99FF00')
     nx.draw_networkx_labels(G, pos, font_size=7)
     labels = nx.get_edge_attributes(G,'weight')
     nx.draw_networkx_edge_labels(G, pos, font_size=7, edge_labels=labels)
@@ -64,6 +66,43 @@ def update_graph(graph):
     dest_drop = OptionMenu(window, dest_node, *options)
     dest_drop.place(x=700, y = 202)
     dest_drop.config(width = 17)
+
+def step_by_step(graph, path):
+    global fig
+    step = []
+    for i in range (len(path) - 1):
+        step.append([path[i],path[i+1]])
+        fig = plt.figure(figsize=(6.5,2.7))
+        G = nx.DiGraph()
+        for node in graph.nodes:
+            for adj, dist in graph.adj[node]:
+                if [node,adj] in step:
+                    G.add_edge(node, adj, weight=dist, step = "step")
+                else:
+                    G.add_edge(node, adj, weight=dist, step = "not-step")
+
+        color_map = nx.get_edge_attributes(G, "step")
+        for key in color_map:
+            if color_map[key] == "step":
+                color_map[key] = "#E00000"
+            else:
+                color_map[key] = "#99FF00"
+        step_colors = [color_map.get(edge) for edge in G.edges()]
+        pos = nx.circular_layout(G)
+        nx.draw(G, pos, edge_color = step_colors)
+        nx.draw_networkx_labels(G, pos, font_size=7)
+        labels = nx.get_edge_attributes(G,'weight')
+        nx.draw_networkx_edge_labels(G, pos, font_size=7, edge_labels=labels)
+
+        frame_Graph = Frame(window)
+        frame_Graph.place(x=10, y = 95)
+        canvas = FigureCanvasTkAgg(fig, master=frame_Graph)
+        canvas.draw()
+        canvas.get_tk_widget().pack()
+        text.insert(str(float(i+5)), "->{0}".format(path[i+1]))
+        sleep(1)
+        window.update()
+        
 
 #create window
 window = Tk()

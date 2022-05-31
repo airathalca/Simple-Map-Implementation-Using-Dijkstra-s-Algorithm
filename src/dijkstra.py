@@ -59,9 +59,3 @@ class Graph:
             current_node = prev[current_node]
         path.appendleft(start)
         return path, dist[dest], iter
-    
-def print_path(list):
-    path_str = list[0]
-    for i in range (1,len(list)):
-        path_str += "->" + list[i]
-    return path_str
