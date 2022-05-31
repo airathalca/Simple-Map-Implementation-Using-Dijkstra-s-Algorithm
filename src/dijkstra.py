@@ -28,6 +28,7 @@ class Graph:
         return ret
 
     def dijkstra(self, start, dest):
+        iter = 0
         visited = {}
         dist = {}
         prev = {}
@@ -45,6 +46,7 @@ class Graph:
             if dist[current_node] == INT_MAX:
                 break
             for adj_node, distance in self.adj[current_node]:
+                iter += 1
                 if (not visited[adj_node] and dist[current_node] + distance < dist[adj_node]):
                     dist[adj_node] = dist[current_node] + distance
                     prev[adj_node] = current_node
@@ -56,4 +58,10 @@ class Graph:
             path.appendleft(current_node)
             current_node = prev[current_node]
         path.appendleft(start)
-        return path, dist[dest]
+        return path, dist[dest], iter
+    
+def print_path(list):
+    path_str = list[0]
+    for i in range (1,len(list)):
+        path_str += "->" + list[i]
+    return path_str
