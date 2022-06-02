@@ -43,12 +43,12 @@ def update_graph(graph):
     G = nx.DiGraph()
     for node in graph.nodes:
         for adj, dist in graph.adj[node]:
-            G.add_edge(node, adj, weight=dist)
+            G.add_edge(node, adj, cost=dist)
 
     pos = nx.circular_layout(G)
     nx.draw(G, pos, edge_color = '#99FF00')
     nx.draw_networkx_labels(G, pos, font_size=7)
-    labels = nx.get_edge_attributes(G,'weight')
+    labels = nx.get_edge_attributes(G,'cost')
     nx.draw_networkx_edge_labels(G, pos, font_size=7, edge_labels=labels)
 
     frame_Graph = Frame(window)
@@ -67,20 +67,23 @@ def update_graph(graph):
 
 def step_by_step(graph, path):
     global fig, tStop, tStart, iter
-    step = []
+    step = [path[0]]
     for i in range (len(path) - 1):
         distance = 0
-        step.append([path[i],path[i+1]])
+        step.append(path[i+1])
         fig = plt.figure(figsize=(6.5,2.7))
         G = nx.DiGraph()
         for node in graph.nodes:
             for adj, dist in graph.adj[node]:
-                if [node,adj] in step:
-                    distance += dist
-                    G.add_edge(node, adj, weight=dist, step = "step")
+                if node in step:
+                    idx = step.index(node)
+                    if (idx < len(step) - 1 and step[idx+1] == adj):
+                        distance += dist
+                        G.add_edge(node, adj, cost=dist, step = "step")
+                    else:
+                        G.add_edge(node, adj, cost=dist, step = "not-step")
                 else:
-                    G.add_edge(node, adj, weight=dist, step = "not-step")
-
+                    G.add_edge(node, adj, cost=dist, step = "not-step")
         color_map = nx.get_edge_attributes(G, "step")
         for key in color_map:
             if color_map[key] == "step":
@@ -91,7 +94,7 @@ def step_by_step(graph, path):
         pos = nx.circular_layout(G)
         nx.draw(G, pos, edge_color = step_colors)
         nx.draw_networkx_labels(G, pos, font_size=7)
-        labels = nx.get_edge_attributes(G,'weight')
+        labels = nx.get_edge_attributes(G,'cost')
         nx.draw_networkx_edge_labels(G, pos, font_size=7, edge_labels=labels)
 
         frame_Graph = Frame(window)
